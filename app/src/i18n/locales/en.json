@@ -195,6 +195,25 @@
         "downloadLogs": "Download logs",
         "comingSoon": "Lots more coming soon - stay tuned!"
     },
+    "plugins": {
+        "title": "Plugins",
+        "subtitle": "Plugins extend Vacuula, for example by sending robot events to Home Assistant or Node-RED.",
+        "settingsInfo": "Turn plugins on and off and change their settings.",
+        "manage": "Manage plugins",
+        "back": "Back to settings",
+        "none": "No plugins found.",
+        "source_builtin": "Built in",
+        "source_user": "User",
+        "source_package": "Package",
+        "status_running": "Running",
+        "status_stopped": "Off",
+        "status_error": "Error",
+        "save": "Save",
+        "cancel": "Cancel",
+        "addTitle": "Add plugins",
+        "addInfo": "Put a plugin .py file in the plugins folder of the Vacuula data folder (/server/data/plugins in Docker), then press reload. Reload also picks up changes to plugin files.",
+        "reload": "Reload plugins"
+    },
     "serverUnreachable": {
         "title": "Could not connect to the server",
         "subtitle": "The app could not connect to the Vacuula server! Please make sure the server is running and reachable from this device.",

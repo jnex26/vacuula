@@ -9,6 +9,32 @@ declare module 'axios' {
   }
 }
 
+/** One field of a plugin's settings form */
+export interface PluginConfigField {
+  key: string
+  label?: string
+  type: 'text' | 'number' | 'switch' | 'dropdown'
+  default?: unknown
+  options?: string[]
+}
+
+export type PluginConfig = Record<string, string | number | boolean>
+
+/** GET /api/plugins */
+export interface PluginInfo {
+  id: string
+  name: string
+  description: string
+  version: string
+  source: 'builtin' | 'user' | 'package'
+  loaded: boolean
+  enabled: boolean
+  status: 'running' | 'stopped' | 'error'
+  error: string | null
+  config_schema: PluginConfigField[]
+  config: PluginConfig
+}
+
 /** GET /api/server */
 export interface ServerInfo {
   timezone: string
@@ -133,6 +159,18 @@ export class Http {
 
   static updateRobot(serial: string, data: { name: string }) {
     return instance.post(`/robot/${serial}`, data)
+  }
+
+  static getPlugins() {
+    return instance.get<PluginInfo[]>('/plugins', { skipLoader: true })
+  }
+
+  static updatePlugin(id: string, data: { enabled?: boolean, config?: PluginConfig }) {
+    return instance.post<PluginInfo>(`/plugins/${id}`, data)
+  }
+
+  static reloadPlugins() {
+    return instance.post<PluginInfo[]>('/plugins/reload')
   }
 
   static setLoadingStateCallback(cb: ((state: LoadingState) => void) | null) {

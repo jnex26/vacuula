@@ -8,6 +8,7 @@ from typing import Callable, Optional, Tuple, List
 # general
 from .app import get_robots, get_maps, get_map, get_run, post_map, post_robot, get_runs, connect_robot, post_robot_command, get_server_info
 from .events import get_events
+from .plugins import get_plugins, post_plugins_reload, post_plugin, plugin_route
 from vacuula_server.handlers.setup import get_cert, get_log, get_log_full
 
 #gen4
@@ -57,6 +58,10 @@ APP_ROUTES: List[Tuple[str, str, Handler]] = [
     ("POST", r"/api/robot/(.+)/command", post_robot_command),
     ("POST", r"/api/robot/(.+)", post_robot),
     ("DELETE", r"/api/robot/(.+)/maps/(.+)", gen4.delete_demote_floorplan),
+    ("GET", "/api/plugins", get_plugins),
+    ("POST", "/api/plugins/reload", post_plugins_reload),
+    ("POST", r"/api/plugins/([^/]+)", post_plugin),
+    *((method, r"/api/plugins/([^/]+)/(.*)", plugin_route) for method in ("GET", "POST", "PUT", "DELETE")),
 ]
 
 S3_ROUTES: List[Tuple[str, str, Handler]] = [

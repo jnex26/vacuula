@@ -195,6 +195,25 @@
         "downloadLogs": "Descarregar logs",
         "comingSoon": "Muito mais em breve - fique atento!"
     },
+    "plugins": {
+        "title": "Plugins",
+        "subtitle": "Os plugins ampliam o Vacuula, por exemplo enviando eventos do robot para o Home Assistant ou Node-RED.",
+        "settingsInfo": "Ative e desative plugins e altere as suas definições.",
+        "manage": "Gerir plugins",
+        "back": "Voltar às definições",
+        "none": "Nenhum plugin encontrado.",
+        "source_builtin": "Incluído",
+        "source_user": "Utilizador",
+        "source_package": "Pacote",
+        "status_running": "Ativo",
+        "status_stopped": "Desligado",
+        "status_error": "Erro",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "addTitle": "Adicionar plugins",
+        "addInfo": "Coloque um ficheiro .py de plugin na pasta plugins da pasta de dados do Vacuula (/server/data/plugins no Docker) e carregue em recarregar. Recarregar também aplica alterações aos ficheiros dos plugins.",
+        "reload": "Recarregar plugins"
+    },
     "serverUnreachable": {
         "title": "Não foi possível ligar ao servidor",
         "subtitle": "A aplicação não conseguiu ligar ao servidor Vacuula! Confirme que o servidor está a funcionar e que é acessível a partir deste dispositivo.",

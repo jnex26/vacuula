@@ -8,6 +8,7 @@ import vacuula_server.gen3.init
 import vacuula_server.gen4.init
 import vacuula_server.handlers.init
 from vacuula_server.handlers.events import register_subscribers
+from vacuula_server import plugins
 from vacuula_server.handlers.setup import MDNSAdvertiser, ensure_ssl_certificate
 from vacuula_server.logger import setup_logging
 
@@ -30,6 +31,8 @@ def main():
         threading.Thread(target=vacuula_server.gen4.init.start, daemon=True).start()
 
     threading.Thread(target=vacuula_server.handlers.init.start, daemon=True).start()
+
+    plugins.load_all()
 
     mdns: MDNSAdvertiser | None = None
     if MDNS_ENABLED:

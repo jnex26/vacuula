@@ -9,6 +9,7 @@ import vacuula_server.gen3.init
 import vacuula_server.gen4.init
 import vacuula_server.handlers.init
 from vacuula_server.handlers.init_ha_ingress import start as start_ha_ingress
+from vacuula_server.handlers.events import register_subscribers
 from vacuula_server.handlers.setup import MDNSAdvertiser, ensure_ssl_certificate
 from vacuula_server.logger import setup_logging
 
@@ -25,6 +26,7 @@ def main():
     logger.info("Starting Vacuula Server %s", APP_VERSION)
     check_db_is_up_to_date()
     ensure_ssl_certificate()
+    register_subscribers()
     if GEN3_ENABLED:
         threading.Thread(target=vacuula_server.gen3.init.start, daemon=True).start()
     if GEN4_ENABLED:

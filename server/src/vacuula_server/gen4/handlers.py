@@ -11,11 +11,11 @@ from vacuula_server.models.robot import Robot
 from vacuula_server.models.persistent_map import FloorPlan
 import threading
 from vacuula_server.models.run import Gen4__Run
-from vacuula_server.state import PendingRequest, put_drop_oldest, robot_connections
-from vacuula_server.handlers.events import notify_robots_changed
+from vacuula_server.state import PendingRequest, robot_connections
+from vacuula_server import bus
 from vacuula_server.generation import Generation
 
-from vacuula_server.state import pending_requests, client_connections
+from vacuula_server.state import pending_requests
 from datetime import datetime, timezone
 import struct, json
 import os
@@ -91,7 +91,7 @@ def handle_login(rc: RobotConn, msg):
             session.commit()
 
     logger.info("Robot %s logged in with label_serial %s", serial, label_serial)
-    notify_robots_changed()
+    bus.emit("robot.connected", {"serial": serial, "type": "neato.gen4"})
 
 
 def now_iso():
@@ -170,22 +170,12 @@ def robot_response(rc: RobotConn, data: dict):
 
 
 def robot_event(rc: RobotConn, data: dict):
-    # broadcast to all clients subscribed to this robot
-    clients_subscribed = [
-        c for c in client_connections
-        if c["serial"] == rc.serial
-    ]
-
-    msg = json.dumps({
+    bus.emit("robot.event", {
         "serial": rc.serial,
         "type": "neato.gen4",
         "data": data,
         "ts": time.time()
-    }) + "\n"
-    frame = f"data: {msg}\n\n".encode()
-
-    for client in clients_subscribed:
-        put_drop_oldest(client["queue"], frame)
+    })
 
 
 

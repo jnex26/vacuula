@@ -31,7 +31,7 @@ class PendingRequest:
 # - req_id --> PendingRequest
 pending_requests: dict[str, PendingRequest] = {}
 
-def put_drop_oldest(q: queue.Queue, item: bytes) -> None:
+def put_drop_oldest(q: queue.Queue, item: object) -> None:
     try:
         q.put_nowait(item)
     except queue.Full:

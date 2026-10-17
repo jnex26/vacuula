@@ -1,7 +1,7 @@
 from __future__ import annotations
 import logging
 from vacuula_server.env import GEN4_PORT, HOST_IP
-from vacuula_server.handlers.events import notify_robots_changed
+from vacuula_server import bus
 from vacuula_server.tls import CERT, KEY
 import threading
 import socket, ssl, struct, json
@@ -116,9 +116,10 @@ def handle_robot(conn, addr):
         traceback.print_exc()
     finally:
         rc.stop_event.set()
-        del robot_connections[rc.serial]
+        if robot_connections.get(rc.serial) is rc:
+            del robot_connections[rc.serial]
+            bus.emit("robot.disconnected", {"serial": rc.serial, "type": "neato.gen4"})
         logger.info("Robot %s disconnected", rc.serial or addr)
-        notify_robots_changed()
         try:
             conn.close()
         except Exception:

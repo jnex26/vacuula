@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Vacuula</Name>
+  <Repository>ghcr.io/vacuula/vacuula:latest</Repository>
+  <Registry>https://github.com/vacuula/vacuula/pkgs/container/vacuula</Registry>
+  <Network>br0</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://discord.gg/PAgwhWvyD8</Support>
+  <Project>https://github.com/vacuula/vacuula</Project>
+  <ReadMe>https://github.com/vacuula/vacuula/blob/main/README.md</ReadMe>
+  <Overview>Custom server for the undead robot vacuum cleaners - revive your Neato with the power of Vacuula. Replaces the shut down Neato cloud for Gen3 (D3-D7) and Gen4 (D800, D8-D10) robots with a local server and web app: status, maps, runs, schedules, settings and zones.[br][br]Gen3 robots can only connect on port 443, which the Unraid web UI usually uses itself, so give this container its own IP address (Network Type: br0 / Custom, with a fixed IP). After starting, point your robot at that IP with the Vacuula installer, see the README.</Overview>
+  <Category>HomeAutomation: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:80]/web</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/vacuula/vacuula/main/app/public/icons/icon-vacuula-192.png</Icon>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText>Support Vacuula on Ko-fi</DonateText>
+  <DonateLink>https://ko-fi.com/V7V61PBIY6</DonateLink>
+  <Requires>A dedicated IP for the container (br0 or another custom network). Gen3 robots require port 443 and Gen4 robots use port 3443 on that IP.</Requires>
+  <Config Name="Data" Target="/server/data" Default="/mnt/user/appdata/vacuula" Mode="rw" Description="Database, maps, certificates, logs and plugins" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/vacuula</Config>
+  <Config Name="Gen3 robots (D3-D7)" Target="GEN3_ENABLED" Default="True|False" Mode="" Description="Serve Gen3 robots, requires port 443" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <Config Name="Gen4 robots (D800, D8-D10)" Target="GEN4_ENABLED" Default="True|False" Mode="" Description="Serve Gen4 robots" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <Config Name="mDNS" Target="MDNS_ENABLED" Default="True|False" Mode="" Description="Advertise the server on the network for auto discovery (vacuula.local)" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <Config Name="Web app port" Target="VACUULA_PORT" Default="80" Mode="" Description="Port of the web app and API. If you change it, update the WebUI port too" Type="Variable" Display="advanced" Required="false" Mask="false">80</Config>
+  <Config Name="Gen4 port" Target="GEN4_PORT" Default="3443" Mode="" Description="Port Gen4 robots connect to" Type="Variable" Display="advanced" Required="false" Mask="false">3443</Config>
+  <Config Name="Bind address" Target="HOST_IP" Default="" Mode="" Description="Address to listen on, empty for all interfaces" Type="Variable" Display="advanced" Required="false" Mask="false"/>
+</Container>

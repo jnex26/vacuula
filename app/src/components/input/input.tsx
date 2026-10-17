@@ -2,7 +2,7 @@ import { FaChevronDown } from 'react-icons/fa'
 import styles from './input.module.scss'
 
 interface TextInputProps {
-    type: 'text',
+    type: 'text' | 'password',
     onChange: (value: string) => void,
     value?: string,
     placeholder?: string,
@@ -63,10 +63,10 @@ export default function Input<T>(props: InputProps<T>) {
 
     const inputContent = (
         <>
-            {props.type === 'text' && (
+            {(props.type === 'text' || props.type === 'password') && (
                 <input
                     className={styles.text}
-                    type="text"
+                    type={props.type}
                     disabled={props.disabled}
                     value={props.value}
                     placeholder={props.placeholder}

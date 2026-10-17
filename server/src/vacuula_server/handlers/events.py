@@ -9,7 +9,8 @@ from sqlalchemy import select
 from vacuula_server.db import get_session
 from vacuula_server.gen4.data import Gen4Data
 from vacuula_server.models.robot import Robot
-from vacuula_server.state import put_drop_oldest, robot_connections
+from vacuula_server import bus
+from vacuula_server.state import client_connections, put_drop_oldest, robot_connections
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -57,12 +58,28 @@ def broadcast(event: str, data) -> None:
         put_drop_oldest(q, frame)
 
 
-def notify_robots_changed() -> None:
-    """Call after a robot connects, disconnects or is renamed."""
+def notify_robots_changed(event: str, data: dict) -> None:
+    """Bus subscriber: push the robot list to the web app when a robot connects, disconnects or is renamed."""
     try:
         broadcast("robots", robots_snapshot())
     except Exception as e:
         logger.warning("robots event not sent: %s: %s", type(e).__name__, e)
+
+
+def forward_robot_event(event: str, data: dict) -> None:
+    """Bus subscriber: push robot events to web app clients watching that robot."""
+    clients = [c for c in client_connections if c["serial"] == data["serial"]]
+    if not clients:  # skip serializing when nobody is listening
+        return
+    msg = json.dumps(data) + "\n"
+    frame = f"data: {msg}\n\n".encode()
+    for client in clients:
+        put_drop_oldest(client["queue"], frame)
+
+
+def register_subscribers() -> None:
+    bus.subscribe(["robot.connected", "robot.disconnected", "robot.renamed"], notify_robots_changed, "web:robots")
+    bus.subscribe("robot.event", forward_robot_event, "web:robot-events")
 
 
 def get_events(req: "RouterHandler") -> None:

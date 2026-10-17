@@ -3,7 +3,7 @@ import logging
 import socket
 from vacuula_server.gen3.commands import send_chunk, build_heartbeat
 from vacuula_server.state import robot_connections
-from vacuula_server.handlers.events import notify_robots_changed
+from vacuula_server import bus
 from vacuula_server.gen3.utils import get_robot_serial
 from vacuula_server.db import get_session
 from vacuula_server.gen3.event_handler import robot_data
@@ -41,7 +41,7 @@ def nucleo_init(req: RouterHandler) -> None:
     conn = RobotConn(serial, Generation.GEN3, Gen2Gen3Conn(gen3_data.password, req.wfile))
     robot_connections[serial] = conn
     logger.info("Robot %s connected", serial)
-    notify_robots_changed()
+    bus.emit("robot.connected", {"serial": serial, "type": "neato.gen3"})
 
     try:
         while True:
@@ -56,4 +56,4 @@ def nucleo_init(req: RouterHandler) -> None:
         if robot_connections.get(serial) is conn:
             del robot_connections[serial]
             logger.info("Robot %s disconnected", serial)
-            notify_robots_changed()
+            bus.emit("robot.disconnected", {"serial": serial, "type": "neato.gen3"})

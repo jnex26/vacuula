@@ -5,7 +5,8 @@ from vacuula_server.gen3.commands import send_chunk, build_command
 from vacuula_server.env import GEN4_PORT
 from vacuula_server.constants import APP_VERSION, MAPS_DIR
 from vacuula_server.state import robot_connections, client_connections, pending_requests, PendingRequest
-from vacuula_server.handlers.events import robots_snapshot, notify_robots_changed, CLIENT_QUEUE_MAX
+from vacuula_server import bus
+from vacuula_server.handlers.events import robots_snapshot, CLIENT_QUEUE_MAX
 from vacuula_server.db import get_session
 from vacuula_server.models.persistent_map import FloorPlan, PersistentMap
 from vacuula_server.models.robot import Robot
@@ -142,7 +143,7 @@ def post_robot(req: RouterHandler, serial: str) -> None:
         )
         session.commit()
 
-    notify_robots_changed()
+    bus.emit("robot.renamed", {"serial": serial, "name": name})
     req.send_ok()
 
 def get_runs(req: RouterHandler, serial: str) -> None:

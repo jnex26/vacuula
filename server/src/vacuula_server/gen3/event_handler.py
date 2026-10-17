@@ -1,9 +1,9 @@
 from __future__ import annotations
 import logging
-from vacuula_server import state
+from vacuula_server import bus
 import json
 import time
-from vacuula_server.state import pending_requests, put_drop_oldest
+from vacuula_server.state import pending_requests
 import typing
 
 logger = logging.getLogger(__name__)
@@ -47,19 +47,13 @@ def robot_data(serial: str, data: bytes):
         if slot is not None:
             slot.fulfill(data, 200 if result == "ok" else 400)
     elif eventId:
-        clients = [c for c in state.client_connections if c["serial"] == serial]
-        if clients:  # skip serializing when nobody is listening
-            msg = json.dumps({
-                "serial": serial,
-                "event": eventId,
-                "data": decoded,      # parsed dict, not raw bytes
-                "ts": time.time(),
-            }) + "\n"
-            frame = f"data: {msg}\n\n".encode()
-            for client in clients:
-                put_drop_oldest(client["queue"], frame)
-
-
+        bus.emit("robot.event", {
+            "serial": serial,
+            "type": "neato.gen3",
+            "event": eventId,
+            "data": decoded,      # parsed dict, not raw bytes
+            "ts": time.time(),
+        })
     else:
         logger.error("no eventId or reqId in data from %s", serial)
 

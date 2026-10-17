@@ -8,6 +8,7 @@ import Home from "./pages/home/home"
 import AppLoadingIndicator from "./components/appLoadingIndicator/appLoadingIndicator"
 import Schedule from "./pages/schedule/schedule"
 import Settings from "./pages/settings/settings"
+import Plugins from "./pages/plugins/plugins"
 import { RequireRobot } from "./components/require/requireRobot"
 import { RequireRobots } from "./components/require/requireRobots"
 
@@ -26,6 +27,7 @@ const App = () => (
                         <Route path="map" element={<Map />} />
                         <Route path="schedule" element={<Schedule />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="plugins" element={<Plugins />} />
                     </Routes>
                 </RequireRobot>
             </div>

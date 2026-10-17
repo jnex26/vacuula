@@ -18,6 +18,8 @@ import { VscFeedback } from 'react-icons/vsc'
 import { FaFileLines } from 'react-icons/fa6'
 import type { UseState } from '../../components/map/types'
 import { loadSelectedMapShape, saveSelectedMapShape, MAPSHAPES } from './mapshapes'
+import { useNavigate } from 'react-router'
+import { IoExtensionPuzzleOutline } from 'react-icons/io5'
 
 export default () => {
     const { t, i18n } = useTranslation()
@@ -26,6 +28,7 @@ export default () => {
     const { mascot, setMascot } = useMascot()
 
     const { robot, updateRobotName, serverInfo } = useRobot()
+    const navigate = useNavigate()
 
     const [robotName, setRobotName] = useState(robot.name)
     const [selectedMapShape, setSelectedMapShape] = useState(loadSelectedMapShape())
@@ -117,6 +120,17 @@ export default () => {
                     value={mascot.id}
                     onChange={(id) => setMascot(id)}
                 />
+            </div>
+
+            <hr style={{ width: '95%' }} />
+
+            <div className={styles.featureList}>
+                <Input
+                    type="custom"
+                    label={t('plugins.title')}
+                    extraInfo={t('plugins.settingsInfo')}>
+                    <Button icon={<IoExtensionPuzzleOutline size={20} />} text={t('plugins.manage')} style='secondary' onClick={() => navigate('/plugins')} />
+                </Input>
             </div>
 
             <hr style={{ width: '95%' }} />

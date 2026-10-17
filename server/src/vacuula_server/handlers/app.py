@@ -12,11 +12,11 @@ from vacuula_server.models.persistent_map import FloorPlan, PersistentMap
 from vacuula_server.models.robot import Robot
 from vacuula_server.models.run import Gen4__Run, Gen3__Run
 from sqlalchemy import select, update
-from vacuula_server.generation import Generation, get_robot_by_serial
+from vacuula_server.generation import get_robot_by_serial
 import json
 import queue
 import os
-from vacuula_server.gen4.handlers import robot_send_request
+from vacuula_server.robot_commands import send_command
 from vacuula_server.server_tz import server_timezone, utc_offset_minutes
 
 from typing import TYPE_CHECKING, Sequence
@@ -24,9 +24,6 @@ if TYPE_CHECKING:
     from vacuula_server.handlers.router import RouterHandler
 
 
-
-# Longest wait for a robot to answer a command before the HTTP request fails
-COMMAND_TIMEOUT_S = 30
 logger = logging.getLogger(__name__)
 
 def get_server_info(req: RouterHandler) -> None:
@@ -240,43 +237,7 @@ def post_robot_command(req: RouterHandler, serial: str) -> None:
     """POST /robots/{serial}/command - send command to robot"""
     if not (data := req.read_json()): return
 
-    if get_robot_by_serial(serial) is None:
-        req.send_not_found("Robot not found")
-        return
-
-    if serial not in robot_connections:
-        req.send_bad_request("Robot not connected")
-        return
-
-    conn = robot_connections[serial]
-    slot = PendingRequest()
-    if (conn.gen == Generation.GEN4):
-        # gen4
-        req_id, err = robot_send_request(conn, data, slot)
-        if err:
-            _send_quietly(lambda: req.send_error_response(502, "Failed to send command to robot"))
-            return
-    elif (conn.gen == Generation.GEN3) and isinstance(conn.conn, Gen2Gen3Conn):
-        # gen3
-        req_id, msg = build_command(serial, data)
-        pending_requests[str(req_id)] = slot
-        logger.debug("Sending command to robot %s: %s", serial, data)
-        try:
-            send_chunk(conn.conn.wfile, msg) # TODO
-        except Exception:
-            pending_requests.pop(str(req_id), None)
-            _send_quietly(lambda: req.send_error_response(502, "Failed to send command to robot"))
-            return
-    else:
-        req.send_bad_request("Unsupported robot generation")
-        return
-
-    key = str(req_id)
-    slot.event.wait(COMMAND_TIMEOUT_S)
-    pending_requests.pop(key, None)
-    if slot.event.is_set():
-        _send_quietly(lambda: req.send_response_data(slot.content, True, slot.status))
-    else:
-        _send_quietly(lambda: req.send_error_response(504, "Robot did not answer in time"))
+    status, content = send_command(serial, data)
+    _send_quietly(lambda: req.send_response_data(content, True, status))
     
     

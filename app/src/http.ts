@@ -31,6 +31,8 @@ export interface PluginInfo {
   enabled: boolean
   status: 'running' | 'stopped' | 'error'
   error: string | null
+  /** problem reported by a running plugin, e.g. cannot reach its server */
+  warning: string | null
   config_schema: PluginConfigField[]
   config: PluginConfig
 }

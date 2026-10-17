@@ -208,6 +208,7 @@
         "status_running": "Running",
         "status_stopped": "Off",
         "status_error": "Error",
+        "status_warning": "Needs attention",
         "save": "Save",
         "cancel": "Cancel",
         "addTitle": "Add plugins",

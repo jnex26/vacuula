@@ -8,6 +8,8 @@ import Input from '../../components/input/input'
 import Button from '../../components/button/button'
 import { Http, type PluginConfig, type PluginConfigField, type PluginInfo } from '../../http'
 
+const PLUGINS_REFRESH_MS = 5000
+
 const errorMessage = (err: unknown) =>
     isAxiosError(err) ? (err.response?.data?.error ?? err.message) : String(err)
 
@@ -18,9 +20,16 @@ export default () => {
     const [loadError, setLoadError] = useState<string>()
 
     useEffect(() => {
-        Http.getPlugins()
-            .then(res => setPlugins(res.data))
+        const load = () => Http.getPlugins()
+            .then(res => {
+                setPlugins(res.data)
+                setLoadError(undefined)
+            })
             .catch(err => setLoadError(errorMessage(err)))
+        load()
+        // plugins can run into problems later (e.g. losing their server), keep the status fresh
+        const timer = setInterval(load, PLUGINS_REFRESH_MS)
+        return () => clearInterval(timer)
     }, [])
 
     const replacePlugin = (updated: PluginInfo) =>
@@ -87,9 +96,11 @@ const PluginItem = ({ plugin, onChange }: PluginItemProps) => {
             .catch(err => setError(errorMessage(err)))
     }
 
-    const background = plugin.status === 'running' ? 'var(--accent-soft)'
-        : plugin.status === 'error' ? 'var(--err-soft)'
-            : undefined
+    const status = plugin.status === 'running' && plugin.warning ? 'warning' : plugin.status
+    const background = status === 'running' ? 'var(--accent-soft)'
+        : status === 'warning' ? 'var(--warn-bg)'
+            : status === 'error' ? 'var(--err-soft)'
+                : undefined
 
     return (
         <div className={styles.featureList}>
@@ -97,7 +108,7 @@ const PluginItem = ({ plugin, onChange }: PluginItemProps) => {
                 <div className={styles.info}>
                     <span>{plugin.name}</span>
                     <span className={styles.meta}>
-                        {[plugin.version && `v${plugin.version}`, t(`plugins.source_${plugin.source}`), t(`plugins.status_${plugin.status}`)].filter(Boolean).join(' · ')}
+                        {[plugin.version && `v${plugin.version}`, t(`plugins.source_${plugin.source}`), t(`plugins.status_${status}`)].filter(Boolean).join(' · ')}
                     </span>
                 </div>
                 {plugin.loaded && (
@@ -107,6 +118,7 @@ const PluginItem = ({ plugin, onChange }: PluginItemProps) => {
 
             {plugin.description && <span className={styles.muted}>{plugin.description}</span>}
             {plugin.error && <span className={styles.error}>{plugin.error}</span>}
+            {plugin.warning && <span className={styles.warning}>{plugin.warning}</span>}
             {error && <span className={styles.error}>{error}</span>}
 
             {plugin.config_schema.map(field => (

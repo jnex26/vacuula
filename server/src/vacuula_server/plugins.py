@@ -20,7 +20,8 @@ Plugins are found in (first id wins):
   - the "vacuula.plugins" entry point group   pip installed packages
 
 setup() must return quickly; long running work belongs in a thread that exits when
-ctx.stop_event is set. Everything registered through ctx is undone when the plugin stops.
+ctx.stop_event is set. ctx.set_warning("...") shows a problem on the Plugins page while the
+plugin keeps running (e.g. a server it talks to is unreachable), ctx.set_warning(None) clears it. Everything registered through ctx is undone when the plugin stops.
 Enabled state and config are stored in data/plugins/plugins.json, every plugin starts disabled.
 """
 from __future__ import annotations
@@ -62,8 +63,16 @@ class PluginContext:
         self.config: dict[str, Any] = dict(plugin.config)
         self.logger = logging.getLogger(f"vacuula_plugins.{plugin.id}")
         self.stop_event = threading.Event()
+        self.warning: str | None = None
         self._subscriptions: list[bus.Subscription] = []
         self.routes: list[tuple[str, str, RouteHandler]] = []
+
+    def set_warning(self, message: str | None, log: bool = True) -> None:
+        """Show (or with None clear) a problem on the Plugins page while the plugin keeps running."""
+        if message != self.warning:
+            if message and log:
+                self.logger.warning("%s", message)
+            self.warning = message
 
     def subscribe(self, patterns: str | list[str], handler: bus.Handler) -> None:
         """Call handler(event, data) for bus events, see vacuula_server.bus for event names."""
@@ -143,6 +152,7 @@ class Plugin:
             "enabled": self.enabled,
             "status": self.status,
             "error": self.error,
+            "warning": self.ctx.warning if self.ctx else None,
             "config_schema": self.config_schema,
             "config": self.masked_config(),
         }

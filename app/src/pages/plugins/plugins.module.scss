@@ -44,6 +44,12 @@
     word-break: break-word;
 }
 
+.warning {
+    font-size: 0.9rem;
+    color: $warn-text;
+    word-break: break-word;
+}
+
 .actions {
     display: flex;
     justify-content: flex-end;

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Vacuula-Server</Name>
+  <Repository>ghcr.io/vacuula/vacuula:latest</Repository>
+  <Registry/>
+  <Network>br0</Network>
+  <MyIP>192.168.50.2</MyIP>
+  <MyMAC/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <ReadMe/>
+  <Overview/>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:3444]</WebUI>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1792194844</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Vacuular Data" Target="/server/data" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/vacuula-server/</Config>
+  <Config Name="GEN3 Neato " Target="GEN3_ENABLED" Default="True" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <Config Name="Gen4 Neato" Target="GEN4_ENABLED" Default="True" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <Config Name="MDNS Enabled " Target="MDNS_ENABLED" Default="True" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">True</Config>
+  <TailscaleStateDir/>
+</Container>

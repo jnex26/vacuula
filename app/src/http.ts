@@ -16,7 +16,7 @@ export const BASE_PATH = ha_ingress ? ha_ingress[0] : ""
 export interface PluginConfigField {
   key: string
   label?: string
-  type: 'text' | 'number' | 'switch' | 'dropdown'
+  type: 'text' | 'number' | 'switch' | 'dropdown' | 'password'
   default?: unknown
   options?: string[]
 }

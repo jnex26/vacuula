@@ -161,5 +161,5 @@ const ConfigField = ({ field, value, onChange }: ConfigFieldProps) => {
         )
     }
 
-    return <Input type="text" label={label} value={String(value ?? '')} onChange={onChange} />
+    return <Input type={field.type === 'password' ? 'password' : 'text'} label={label} value={String(value ?? '')} onChange={onChange} />
 }

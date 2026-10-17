@@ -10,6 +10,7 @@ A plugin is a Python module that defines `setup(ctx)` and optionally:
         {"key": "verbose", "label": "Verbose", "type": "switch", "default": False},
         {"key": "retries", "label": "Retries", "type": "number", "default": 3},
         {"key": "mode", "label": "Mode", "type": "dropdown", "default": "a", "options": ["a", "b"]},
+        {"key": "password", "label": "Password", "type": "password", "default": ""},
     ]
     def teardown(ctx): ...
 
@@ -44,7 +45,9 @@ from vacuula_server.robot_commands import send_command
 PLUGINS_DIR = DATA_DIR / "plugins"
 SETTINGS_PATH = PLUGINS_DIR / "plugins.json"
 ENTRY_POINT_GROUP = "vacuula.plugins"
-CONFIG_TYPES = ("text", "number", "switch", "dropdown")
+CONFIG_TYPES = ("text", "number", "switch", "dropdown", "password")
+# Stored passwords are never sent to the web app, it gets this instead and sends it back for "unchanged"
+PASSWORD_MASK = "********"
 
 logger = logging.getLogger(__name__)
 
@@ -141,8 +144,12 @@ class Plugin:
             "status": self.status,
             "error": self.error,
             "config_schema": self.config_schema,
-            "config": self.config,
+            "config": self.masked_config(),
         }
+
+    def masked_config(self) -> dict[str, Any]:
+        secrets = {f["key"] for f in self.config_schema if f.get("type") == "password"}
+        return {k: (PASSWORD_MASK if v else "") if k in secrets else v for k, v in self.config.items()}
 
 
 _plugins: dict[str, Plugin] = {}
@@ -312,7 +319,10 @@ def update_plugin(plugin_id: str, enabled: bool | None = None, config: dict | No
 
         if config is not None:
             fields = {f["key"]: f for f in plugin.config_schema}
-            plugin.config = {**plugin.config, **{k: _coerce(fields[k], v) for k, v in config.items() if k in fields}}
+            plugin.config = {**plugin.config, **{
+                k: _coerce(fields[k], v) for k, v in config.items()
+                if k in fields and not (fields[k].get("type") == "password" and v == PASSWORD_MASK)
+            }}
         if enabled is not None:
             plugin.enabled = enabled
 

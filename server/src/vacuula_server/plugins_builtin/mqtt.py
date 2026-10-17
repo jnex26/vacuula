@@ -125,8 +125,13 @@ class Bridge:
         self.client.will_set(self.topic("status"), "offline", qos=1, retain=True)
         self.client.reconnect_delay_set(1, 60)
         self.client.on_connect = self.on_connect
+        self.client.on_connect_fail = self.on_connect_fail
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
+
+    @property
+    def broker(self) -> str:
+        return f"{self.config['host'].strip()}:{int(self.config['port'])}"
 
     def topic(self, *parts: str) -> str:
         return "/".join((self.base, *parts))
@@ -141,6 +146,8 @@ class Bridge:
     def start(self) -> None:
         for serial, info in self.ctx.robots().items():
             self.robots[serial] = info
+        self.ctx.logger.info("Connecting to MQTT broker %s", self.broker)
+        self.ctx.set_warning(f"Connecting to MQTT broker {self.broker}", log=False)
         self.client.connect_async(self.config["host"].strip(), int(self.config["port"]), keepalive=60)
         self.client.loop_start()
         self.ctx.subscribe("robot.*", self.on_bus_event)
@@ -155,9 +162,10 @@ class Bridge:
 
     def on_connect(self, client, userdata, flags, reason_code, properties) -> None:
         if reason_code.is_failure:
-            self.ctx.logger.error("MQTT connection refused: %s", reason_code)
+            self.ctx.set_warning(f"MQTT broker {self.broker} refused the connection: {reason_code}")
             return
-        self.ctx.logger.info("Connected to MQTT broker %s:%s", self.config["host"], self.config["port"])
+        self.ctx.set_warning(None)
+        self.ctx.logger.info("Connected to MQTT broker %s", self.broker)
         client.subscribe([(self.topic("+", "command"), 1), (self.topic("+", "fan_speed", "set"), 1)])
         if self.config["discovery"]:
             client.subscribe(f"{self.prefix}/status", 1)
@@ -166,9 +174,12 @@ class Bridge:
             self.announce(serial)
             self.request_state(serial)
 
+    def on_connect_fail(self, client, userdata) -> None:
+        self.ctx.set_warning(f"Cannot reach MQTT broker {self.broker}, retrying. Check the host and port")
+
     def on_disconnect(self, client, userdata, flags, reason_code, properties) -> None:
-        if reason_code != 0:
-            self.ctx.logger.warning("MQTT disconnected (%s), reconnecting", reason_code)
+        if reason_code != 0 and not self.ctx.stop_event.is_set():
+            self.ctx.set_warning(f"Lost connection to MQTT broker {self.broker} ({reason_code}), reconnecting")
 
     def refresh_loop(self) -> None:
         interval = max(5.0, float(self.config["refresh"]))

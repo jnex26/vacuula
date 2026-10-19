@@ -40,7 +40,7 @@ def nucleo_init(req: RouterHandler) -> None:
     req.end_headers()
 
     send_chunk(req.wfile, build_heartbeat())
-    conn = RobotConn(serial, Generation.GEN3, Gen2Gen3Conn(gen3_data.password, req.wfile))
+    conn = RobotConn(serial, Generation.GEN3, Gen2Gen3Conn(gen3_data.password, req.wfile), req.client_address[0])
     robot_connections[serial] = conn
     logger.info("Robot %s connected", serial)
     bus.emit("robot.connected", {"serial": serial, "type": "neato.gen3"})
@@ -59,3 +59,18 @@ def nucleo_init(req: RouterHandler) -> None:
             del robot_connections[serial]
             logger.info("Robot %s disconnected", serial)
             bus.emit("robot.disconnected", {"serial": serial, "type": "neato.gen3"})
+
+
+def get_link(req: RouterHandler) -> None:
+    """GET /api/gen3/link - whether the asking robot's nucleo connection is open.
+
+    Polled by the watchdog Vacuula installs on gen3 robots: astro often never
+    re-establishes a dropped connection, so the watchdog restarts it when this
+    keeps answering false. Matched by source IP, because the robot's own
+    scripts can't produce its NEATOBOT auth header."""
+    addr = req.client_address[0]
+    connected = any(
+        conn.gen == Generation.GEN3 and conn.addr == addr
+        for conn in list(robot_connections.values())
+    )
+    req.send_ok({"connected": connected})

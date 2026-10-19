@@ -17,7 +17,7 @@ import vacuula_server.gen4.app as gen4
 
 # gen3
 from vacuula_server.gen3.handlers.beehive import post_links, persistent_maps, upload_init, upload_finish
-from vacuula_server.gen3.handlers.nucleo import nucleo_init
+from vacuula_server.gen3.handlers.nucleo import nucleo_init, get_link
 from vacuula_server.gen3.handlers.s3_upload import s3_upload
 
 Handler = Callable[..., None]
@@ -43,6 +43,7 @@ APP_ROUTES: List[Tuple[str, str, Handler]] = [
     ("GET", "/api/log/full", get_log_full),
     ("GET", "/api/server", get_server_info),
     ("GET", "/api/robots", get_robots),
+    ("GET", "/api/gen3/link", get_link),
     ("GET", "/api/events", get_events),
     ("GET", r"/api/robot/(.+)/connect", connect_robot),
     ("GET", r"/api/robot/(.+)/maps", get_maps),

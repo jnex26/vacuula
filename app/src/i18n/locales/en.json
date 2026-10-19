@@ -1,5 +1,5 @@
 {
-    "String-version": "1",
+    "String-version": "2",
     "common": {
         "save": "Save",
         "cancel": "Cancel",
@@ -219,6 +219,11 @@
         "title": "Could not connect to the server",
         "subtitle": "The app could not connect to the Vacuula server! Please make sure the server is running and reachable from this device.",
         "mdnsDisclaimer": "If you are using mDNS (viewing site via vacuula.local), then it may take some time for the device to load the ip of the server, if the issue persists, try restarting the browser.",
+        "retry": "Try again"
+    },
+    "hasOutdatedRobot": {
+        "title": "You have an robot that is outdated",
+        "subtitle": "You are running server version {{serverVersion}} and this requires installer version {{minInstallerVersion}} or higher. Please rerun the installer for the following robots with the latest version.",
         "retry": "Try again"
     },
     "robotErrorCode": {

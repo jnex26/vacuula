@@ -1,7 +1,7 @@
 from __future__ import annotations
 import logging
-from vacuula_server.env import GEN4_PORT
-from vacuula_server.constants import APP_VERSION, MAPS_DIR
+from vacuula_server.env import GEN3_PORT, GEN4_PORT
+from vacuula_server.constants import APP_VERSION, MAPS_DIR, MINIMUM_INSTALLER_VERSION
 from vacuula_server.state import client_connections
 from vacuula_server import bus
 from vacuula_server.handlers.events import robots_snapshot, CLIENT_QUEUE_MAX
@@ -29,6 +29,8 @@ def get_server_info(req: RouterHandler) -> None:
     tz = server_timezone()
     req.send_ok({
         "version": APP_VERSION,
+        "min_installer_version": MINIMUM_INSTALLER_VERSION,
+        "gen3_port": GEN3_PORT,
         "gen4_port": GEN4_PORT,
    
         "timezone": tz,

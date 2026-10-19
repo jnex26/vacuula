@@ -9,7 +9,8 @@ import { OrbitalServices, type AnyEvent } from '../types/neato/gen4'
 import { persistentMapsLoader } from '../loaders/resources'
 import { useTheme } from '../theme'
 import Loading from '../pages/loading/loading'
-import { ServerUnreachable } from '../components/require/emptyState'
+import { ServerHasOutdatedRobot, ServerUnreachable } from '../components/require/emptyState'
+import { isRobotOutdated } from '../utils/version'
 
 interface AppContextType {
     serverInfo: ServerInfo,
@@ -55,13 +56,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(false)
     const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false })
     const [message, setMessage] = useState<string | null>(null)
+    const [hasOutdatedRobot, setHasOutdatedRobot] = useState(false)
+    const [serverInfo, setServerInfo] = useState<ServerInfo>()
+    const [serverInfoError, setServerInfoError] = useState(false)
 
     useEffect(() => {
         Http.setLoadingStateCallback(setLoadingState)
     }, [])
 
-    const [serverInfo, setServerInfo] = useState<ServerInfo>()
-    const [serverInfoError, setServerInfoError] = useState(false)
+    useEffect(() => {
+        if (!robots || !serverInfo) return
+        const hasOutdated = Object.values(robots).some(
+            r => r?.connected && r.installed_with && isRobotOutdated(r.installed_with, serverInfo.min_installer_version)
+        )
+        setHasOutdatedRobot(hasOutdated)
+    }, [robots, serverInfo])
+
 
     const loadServerInfo = () => {
         setServerInfoError(false)
@@ -282,6 +292,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? <ServerUnreachable onRetry={loadServerInfo} />
             : <Loading />
     }
+
+    if (hasOutdatedRobot && robots) return <ServerHasOutdatedRobot robots={robots} serverInfo={serverInfo} />
 
     const value: AppContextType = {
         serverInfo,

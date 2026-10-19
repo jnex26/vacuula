@@ -14,14 +14,11 @@ from sqlalchemy import select
 
 from typing import TYPE_CHECKING, Literal
 
-from vacuula_server.env import get_host_ip
 if TYPE_CHECKING:
     from vacuula_server.handlers.router import RouterHandler
 
 
 logger = logging.getLogger(__name__)
-ip = get_host_ip()
-hostname = f"vacuula-local-{ip.replace('.', '-')}.nip.io"
 
 def post_links(req: RouterHandler) -> None:
     """POST /links - link robot to server"""
@@ -29,8 +26,8 @@ def post_links(req: RouterHandler) -> None:
     if not (data := req.read_json()): return
     if not (serial := get_robot_serial(req)): return
 
-    password = data.get("secret_key", "")
-    name = data.get("name", "")
+    password: str | None = data.get("secret_key", "")
+    name: str | None = data.get("name", "")
 
     if not password or not name:
         logger.error("Password or name missing for robot %s", serial)
@@ -39,17 +36,26 @@ def post_links(req: RouterHandler) -> None:
 
     logger.debug("Linking robot %s", serial)
 
+    if "--IV--" not in name:
+        logger.error("Installer version was not sent! %s: %s", serial, name)
+        req.send_bad_request("no installer version sent")
+        return
+
+    name, installed_with = name.split("--IV--", 1)
+
     # if serial exists, update password, else create new robot
     with get_session() as session:
         robot = session.scalar(select(Robot).where(Robot.serial == serial))
         gen3_data = session.scalar(select(Gen3Data).where(Gen3Data.robot == serial))
+
         if robot and gen3_data:
             logger.debug("Robot %s already exists, updating password", serial)
             gen3_data.password = password
+            gen3_data.installed_with = installed_with
         else:
             logger.debug("Creating new robot %s", serial)
             robot = Robot(serial=serial, type="neato.gen3", name=name)
-            gen3_data = Gen3Data(robot=serial, password=password)
+            gen3_data = Gen3Data(robot=serial, password=password, installed_with=installed_with)
     
         if not db_commit(session, req, robot, gen3_data):
             return
@@ -86,7 +92,7 @@ def upload_init(req: RouterHandler, upload_type: Literal["maps", "logs"]) -> Non
 
     res = {
         "id": map_id,
-        "post_url": hostname,
+        "post_url": "vacuula.local",
         "params": {
             "key": serial,
             "AWSAccessKeyId": upload_type,

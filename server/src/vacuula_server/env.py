@@ -59,8 +59,7 @@ def _get_str_env(name: str, default: str) -> str:
         return default
     return str(value)
 
-# Gen3 cannot have its port modified, it is hardcoded to 443. You can make the robot connect and accept commands,
-# however if that works then the maps upload will fail, if you make the maps upload work, then the connection will fail.
+GEN3_PORT: int = _get_int_env("GEN3_PORT", 335)
 GEN4_PORT: int = _get_int_env("GEN4_PORT", 3443)
 VACUULA_PORT: int = _get_int_env("VACUULA_PORT", 80)
 GEN3_ENABLED: bool = _get_bool_env("GEN3_ENABLED", True)
@@ -69,16 +68,22 @@ MDNS_ENABLED: bool = _get_bool_env("MDNS_ENABLED", True)
 HOST_IP: str = _get_str_env("HOST_IP", "0.0.0.0")
 
 # Validations
-if GEN4_PORT == VACUULA_PORT:
+if len(set([GEN3_PORT, GEN4_PORT, VACUULA_PORT])) != 3:
     raise ValueError(
-        "GEN4_PORT and VACUULA_PORT must be unique for the server to work. "
-        f"Got GEN4_PORT={GEN4_PORT}, VACUULA_PORT={VACUULA_PORT}"
+        "GEN3_PORT, GEN4_PORT and VACUULA_PORT must be unique for the server to work. "
+        f"Got GEN3_PORT={GEN3_PORT}, GEN4_PORT={GEN4_PORT}, VACUULA_PORT={VACUULA_PORT}"
+    )
+if not (100 <= GEN3_PORT <= 999):
+    raise ValueError(
+        "GEN3_PORT must be in port range (100-999). "
+        f"Got GEN3_PORT={GEN3_PORT}"
     )
 if not (1 <= GEN4_PORT <= 65535 and 1 <= VACUULA_PORT <= 65535):
     raise ValueError(
         "GEN4_PORT and VACUULA_PORT must be in port range (1-65535). "
         f"Got GEN4_PORT={GEN4_PORT}, VACUULA_PORT={VACUULA_PORT}"
     )
+
 
 def get_docker_host_ip() -> str | None:
     try:

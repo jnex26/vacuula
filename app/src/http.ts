@@ -39,10 +39,13 @@ export interface PluginInfo {
 
 /** GET /api/server */
 export interface ServerInfo {
+  version: string
+  min_installer_version: string
+  gen3_port: number
+  gen4_port: number
+
   timezone: string
   utc_offset_minutes: number
-  version: string
-  gen4_port: number
 }
 
 // Store for loading state callback - will be set by AppContext
